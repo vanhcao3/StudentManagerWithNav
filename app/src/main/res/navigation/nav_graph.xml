@@ -1,0 +1,27 @@
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    app:startDestination="@id/studentListFragment">
+
+    <fragment
+        android:id="@+id/studentListFragment"
+        android:name="com.example.studentmanagerwithnav.StudentListFragment"
+        android:label="Student List"
+        tools:layout="@layout/fragment_student_list">
+        <action
+            android:id="@+id/action_studentListFragment_to_addEditStudentFragment"
+            app:destination="@id/addEditStudentFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/addEditStudentFragment"
+        android:name="com.example.studentmanagerwithnav.AddEditStudentFragment"
+        android:label="Add/Edit Student"
+        tools:layout="@layout/fragment_add_edit_student">
+        <!-- Định nghĩa đối số cho fragment -->
+        <argument
+            android:name="student"
+            app:argType="com.example.studentmanagerwithnav.StudentModel"
+            app:nullable="true" />
+    </fragment>
+</navigation>
