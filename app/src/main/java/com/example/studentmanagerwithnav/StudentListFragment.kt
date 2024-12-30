@@ -7,14 +7,16 @@ import android.widget.ArrayAdapter
 import android.widget.ListView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.example.studentmanagerwithnav.StudentModel
 
 class StudentListFragment : Fragment() {
 
-    private lateinit var studentList: MutableList<StudentModel>
+    private lateinit var studentList: List<StudentModel>
     private lateinit var adapter: ArrayAdapter<StudentModel>
     private lateinit var listView: ListView
+    private lateinit var viewModel: StudentViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -23,16 +25,22 @@ class StudentListFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_student_list, container, false)
         setHasOptionsMenu(true)
 
-        // Gắn danh sách sinh viên
-        studentList = mutableListOf(
-            StudentModel("Nguyễn Văn A", "SV001"),
-            StudentModel("Trần Thị B", "SV002")
-        )
+        // Initialize ViewModel
+        viewModel = ViewModelProvider(this).get(StudentViewModel::class.java)
+        
         listView = view.findViewById(R.id.list_view_students)
-        adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, studentList)
+        studentList = emptyList() // Initialize empty list
+        adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, studentList.toMutableList())
         listView.adapter = adapter
 
-        // Đăng ký Context Menu
+        // Observe students from database
+        viewModel.allStudents.observe(viewLifecycleOwner) { students ->
+            studentList = students
+            adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, students)
+            listView.adapter = adapter
+        }
+
+        // Register Context Menu
         registerForContextMenu(listView)
 
         return view
@@ -50,14 +58,12 @@ class StudentListFragment : Fragment() {
 
         when (item.itemId) {
             R.id.menu_edit -> {
-                // Điều hướng tới AddEditStudentFragment với đối tượng student
                 val action = StudentListFragmentDirections.actionStudentListFragmentToAddEditStudentFragment(student)
                 findNavController().navigate(action)
                 return true
             }
             R.id.menu_remove -> {
-                studentList.removeAt(info.position)
-                adapter.notifyDataSetChanged()
+                viewModel.delete(student)
                 Toast.makeText(requireContext(), "${student.name} đã bị xóa", Toast.LENGTH_SHORT).show()
                 return true
             }
@@ -86,21 +92,16 @@ class StudentListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Lắng nghe thêm mới sinh viên
+        // Listen for new student
         findNavController().currentBackStackEntry?.savedStateHandle?.getLiveData<StudentModel>("student_add")
             ?.observe(viewLifecycleOwner) { newStudent ->
-                studentList.add(newStudent)
-                adapter.notifyDataSetChanged()
+                viewModel.insert(newStudent)
             }
 
-        // Lắng nghe cập nhật sinh viên
+        // Listen for student updates
         findNavController().currentBackStackEntry?.savedStateHandle?.getLiveData<StudentModel>("student_update")
             ?.observe(viewLifecycleOwner) { updatedStudent ->
-                val index = studentList.indexOfFirst { it.id == updatedStudent.id }
-                if (index != -1) {
-                    studentList[index] = updatedStudent
-                    adapter.notifyDataSetChanged()
-                }
+                viewModel.update(updatedStudent)
             }
     }
 
