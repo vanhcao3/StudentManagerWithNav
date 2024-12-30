@@ -21,6 +21,7 @@ class StudentListFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_student_list, container, false)
+        setHasOptionsMenu(true)
 
         // Gắn danh sách sinh viên
         studentList = mutableListOf(
@@ -73,8 +74,10 @@ class StudentListFragment : Fragment() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menu_add_new -> {
-                // Điều hướng tới AddEditStudentFragment để thêm mới
-                findNavController().navigate(R.id.action_studentListFragment_to_addEditStudentFragment)
+                // Truyền null khi thêm mới
+                val action = StudentListFragmentDirections
+                    .actionStudentListFragmentToAddEditStudentFragment(null)
+                findNavController().navigate(action)
                 return true
             }
         }

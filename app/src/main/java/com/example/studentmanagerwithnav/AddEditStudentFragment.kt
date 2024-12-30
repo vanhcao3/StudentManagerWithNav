@@ -47,7 +47,11 @@ class AddEditStudentFragment : Fragment() {
             }
 
             // Tạo đối tượng sinh viên mới
-            val newStudent = StudentModel(name, studentId)
+            val newStudent = if (student == null) {
+                StudentModel(name, studentId)
+            } else {
+                StudentModel(name, studentId, student!!.dbId)
+            }
 
             // Trả dữ liệu về StudentListFragment
             val navController = findNavController()
